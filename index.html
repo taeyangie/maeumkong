@@ -1,1 +1,929 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마음콩 🌷</title>
 
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ padding:15px;
+ background:#fff1f6;
+ color:#665466;
+ font-family:sans-serif;
+}
+
+.app{max-width:450px;margin:auto}
+
+h1{
+ text-align:center;
+ color:#d77da5;
+ font-size:30px;
+}
+
+.subtitle{text-align:center;color:#aa8b9f}
+
+.card{
+ background:white;
+ padding:18px;
+ border-radius:22px;
+ margin:16px 0;
+ box-shadow:0 4px 15px #e9cbd9;
+}
+
+h3{color:#c8789d}
+
+button{cursor:pointer}
+
+nav{
+ display:flex;
+ justify-content:space-around;
+ gap:5px;
+ flex-wrap:wrap;
+}
+
+nav button,.secondary{
+ border:0;
+ background:#fce6ef;
+ border-radius:12px;
+ padding:12px 8px;
+ color:#9d6482;
+ font-weight:bold;
+}
+
+.page{display:none}
+.page.active{display:block}
+
+.moods{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:8px;
+}
+
+.mood{
+ border:1px solid #f3d8e5;
+ background:#fff8fb;
+ border-radius:15px;
+ padding:10px 3px;
+ font-size:13px;
+}
+
+.mood span{
+ display:block;
+ font-size:24px;
+}
+
+.mood.selected{
+ background:#fbd6e7;
+ border:2px solid #df8db0;
+}
+
+textarea{
+ width:100%;
+ height:90px;
+ border:1px solid #efd9e5;
+ border-radius:14px;
+ padding:12px;
+ font-size:15px;
+ margin-top:8px;
+}
+
+.save{
+ width:100%;
+ border:0;
+ border-radius:15px;
+ background:#e9a9c5;
+ color:white;
+ padding:15px;
+ font-size:16px;
+ font-weight:bold;
+ margin-top:12px;
+}
+
+.entry{
+ padding:12px 0;
+ border-bottom:1px solid #f5e5ed;
+ white-space:pre-wrap;
+}
+
+.small{font-size:12px;color:#aa8b9f}
+
+/* 마음콩 캐릭터 */
+
+.character{
+ text-align:center;
+ background:linear-gradient(140deg,#ffe2ed,#eee3ff);
+ border-radius:25px;
+ padding:24px 10px;
+ margin:15px 0;
+}
+
+.character-face{
+ font-size:85px;
+ animation:bounce 2s infinite;
+}
+
+@keyframes bounce{
+ 0%,100%{transform:translateY(0)}
+ 50%{transform:translateY(-7px)}
+}
+
+.character-text{
+ font-size:15px;
+ font-weight:bold;
+ color:#bd779b;
+ margin-top:8px;
+}
+
+/* 달력 */
+
+.calendar-head{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
+
+.calendar-head button{
+ border:0;
+ background:#fce6ef;
+ border-radius:10px;
+ padding:9px 13px;
+}
+
+.calendar{
+ display:grid;
+ grid-template-columns:repeat(7,1fr);
+ gap:5px;
+ text-align:center;
+}
+
+.weekday{
+ font-size:12px;
+ padding:8px 0;
+}
+
+.day{
+ min-height:48px;
+ border:0;
+ background:#fff6fa;
+ border-radius:12px;
+}
+
+.day span{
+ display:block;
+ font-size:17px;
+}
+
+.day.today{border:2px solid #e9a9c5}
+.day.selected{background:#f6d5e5}
+.blank{min-height:48px}
+
+/* 그래프 */
+
+.chart-row{
+ display:grid;
+ grid-template-columns:45px 1fr 30px;
+ align-items:center;
+ gap:8px;
+ margin:13px 0;
+ font-size:12px;
+}
+
+.bar{
+ background:#f8eaf1;
+ height:16px;
+ border-radius:20px;
+ overflow:hidden;
+}
+
+.fill{
+ background:linear-gradient(90deg,#f1a9c7,#c8b4f2);
+ height:100%;
+ border-radius:20px;
+}
+
+/* 비밀번호 화면 */
+
+#lockScreen{
+ position:fixed;
+ inset:0;
+ background:linear-gradient(145deg,#ffeaf2,#eee7ff);
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ padding:20px;
+ z-index:100;
+}
+
+.lock-card{
+ background:white;
+ border-radius:25px;
+ padding:28px 20px;
+ width:100%;
+ max-width:350px;
+ text-align:center;
+ box-shadow:0 8px 30px #d9bfd0;
+}
+
+.lock-card input{
+ width:100%;
+ padding:15px;
+ margin:8px 0;
+ border:1px solid #efcddd;
+ border-radius:13px;
+ font-size:20px;
+ text-align:center;
+ letter-spacing:8px;
+}
+
+.lock-card button{
+ width:100%;
+ padding:14px;
+ border:0;
+ border-radius:13px;
+ background:#e9a9c5;
+ color:white;
+ font-weight:bold;
+ margin-top:10px;
+}
+
+#lockMessage{
+ color:#d77da5;
+ font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 비밀번호 화면 -->
+
+<div id="lockScreen">
+ <div class="lock-card">
+  <div style="font-size:55px">🌷</div>
+  <h2 style="color:#d77da5">마음콩</h2>
+  <p id="lockTitle">나만의 마음 공간에 오신 걸 환영해요 💗</p>
+
+  <input
+   id="pin1"
+   type="password"
+   inputmode="numeric"
+   maxlength="4"
+   placeholder="4자리 비밀번호"
+  >
+
+  <input
+   id="pin2"
+   type="password"
+   inputmode="numeric"
+   maxlength="4"
+   placeholder="비밀번호 확인"
+   style="display:none"
+  >
+
+  <button onclick="unlock()">확인하기 💗</button>
+  <p id="lockMessage"></p>
+ </div>
+</div>
+
+<div class="app" id="mainApp">
+
+<h1>🌷 마음콩</h1>
+<p class="subtitle">나의 작은 감정 이야기 💗</p>
+
+<nav>
+<button onclick="show('home')">🏠 홈</button>
+<button onclick="show('diary')">📖 일기</button>
+<button onclick="show('history')">📅 기록</button>
+<button onclick="lockApp()">🔒 잠금</button>
+</nav>
+
+<!-- 홈 -->
+
+<section id="home" class="page active">
+
+<div class="character">
+ <div class="character-face" id="face">🥰</div>
+ <div class="character-text" id="faceText">
+ 오늘도 당신의 마음을 응원해요! 💗
+ </div>
+</div>
+
+<div class="card">
+
+<h3>오늘 마음은 어떤가요? 💕</h3>
+
+<div class="moods" id="moods"></div>
+
+<h3>오늘의 감정 한 줄</h3>
+
+<textarea id="quick"
+placeholder="오늘은 어떤 하루였나요?"></textarea>
+
+<button class="save" onclick="saveQuick()">
+💗 감정 저장하기
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>🧸 마음 친구</h3>
+
+<textarea id="talk"
+placeholder="오늘 있었던 일을 이야기해 주세요."></textarea>
+
+<button class="save" onclick="friend()">
+마음 친구와 대화하기
+</button>
+
+<p id="reply"></p>
+
+</div>
+</section>
+
+<!-- 일기 -->
+
+<section id="diary" class="page">
+
+<div class="card">
+
+<h3>📖 나의 감정 일기</h3>
+
+<textarea id="event"
+placeholder="오늘 무슨 일이 있었나요?"></textarea>
+
+<textarea id="feeling"
+placeholder="어떤 감정을 느꼈나요?"></textarea>
+
+<textarea id="myself"
+placeholder="나에게 해주고 싶은 말은?"></textarea>
+
+<button class="save" onclick="saveDiary()">
+일기 저장하기 🌸
+</button>
+
+</div>
+</section>
+
+<!-- 기록 -->
+
+<section id="history" class="page">
+
+<div class="card">
+
+<h3>📅 나의 감정 달력</h3>
+
+<div class="calendar-head">
+<button onclick="changeMonth(-1)">◀</button>
+<strong id="monthTitle"></strong>
+<button onclick="changeMonth(1)">▶</button>
+</div>
+
+<div class="calendar" id="calendar"></div>
+
+<h3>💌 선택한 날짜의 기록</h3>
+
+<div id="dayRecords" class="small"></div>
+
+</div>
+
+<div class="card">
+
+<h3>📊 최근 7일 감정 변화</h3>
+
+<div id="chart"></div>
+
+</div>
+
+<div class="card">
+
+<h3>💗 나의 감정 통계</h3>
+
+<div id="stats"></div>
+
+</div>
+
+<div class="card">
+
+<h3>🔐 보안 설정</h3>
+
+<p class="small">비밀번호를 변경할 수 있습니다.</p>
+
+<button class="save" onclick="changePin()">
+비밀번호 변경하기
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>📝 지난 감정 기록</h3>
+
+<p id="count"></p>
+
+<div id="list"></div>
+
+<button class="save" onclick="backup()">
+기록 백업하기
+</button>
+
+</div>
+
+</section>
+</div>
+
+<script>
+
+const emotions=[
+['😄','행복'],
+['😊','좋아요'],
+['😐','보통'],
+['😔','우울'],
+['😡','화남'],
+['😢','슬픔'],
+['😰','불안']
+];
+
+const faces={
+'행복':['🥰','오늘은 행복한 마음이 가득하네요!'],
+'좋아요':['😊','좋은 기분을 오래 간직해요!'],
+'보통':['😐','평범한 하루도 소중해요!'],
+'우울':['🥺','오늘은 마음을 따뜻하게 안아주세요.'],
+'화남':['😠','잠깐 쉬어가도 괜찮아요.'],
+'슬픔':['😢','울고 싶을 땐 울어도 괜찮아요.'],
+'불안':['😰','천천히 숨을 쉬어봐요.']
+};
+
+let selected='행복';
+
+let month=new Date();
+let selectedDay=key(new Date());
+
+function key(d){
+ return d.getFullYear()+'-'+
+ String(d.getMonth()+1).padStart(2,'0')+'-'+
+ String(d.getDate()).padStart(2,'0');
+}
+
+/* 비밀번호 */
+
+let pinMode='setup';
+
+function initPin(){
+
+ let saved=localStorage.getItem('maeum_pin');
+
+ let title=document.getElementById('lockTitle');
+ let pin2=document.getElementById('pin2');
+
+ if(saved){
+  pinMode='login';
+  title.innerText='비밀번호를 입력해 주세요 💗';
+  pin2.style.display='none';
+ }else{
+  pinMode='setup';
+  title.innerText='처음 오셨네요! 비밀번호를 설정해 주세요 🌷';
+  pin2.style.display='block';
+ }
+
+}
+
+function unlock(){
+
+ let a=document.getElementById('pin1').value;
+ let b=document.getElementById('pin2').value;
+ let msg=document.getElementById('lockMessage');
+
+ if(!/^\d{4}$/.test(a)){
+  msg.innerText='숫자 4자리를 입력해 주세요.';
+  return;
+ }
+
+ if(pinMode==='setup'){
+
+  if(a!==b){
+   msg.innerText='비밀번호가 서로 다릅니다.';
+   return;
+  }
+
+  localStorage.setItem('maeum_pin',a);
+
+ }else{
+
+  if(a!==localStorage.getItem('maeum_pin')){
+   msg.innerText='비밀번호가 틀렸습니다.';
+   return;
+  }
+
+ }
+
+ document.getElementById('lockScreen').style.display='none';
+ document.getElementById('pin1').value='';
+ document.getElementById('pin2').value='';
+}
+
+function lockApp(){
+
+ document.getElementById('lockScreen').style.display='flex';
+ initPin();
+}
+
+function changePin(){
+
+ let old=prompt('현재 비밀번호를 입력하세요.');
+
+ if(old!==localStorage.getItem('maeum_pin')){
+  alert('비밀번호가 틀렸습니다.');
+  return;
+ }
+
+ let next=prompt('새로운 4자리 비밀번호를 입력하세요.');
+
+ if(!/^\d{4}$/.test(next||'')){
+  alert('숫자 4자리를 입력해 주세요.');
+  return;
+ }
+
+ localStorage.setItem('maeum_pin',next);
+
+ alert('비밀번호가 변경되었습니다! 💗');
+}
+
+/* 감정 캐릭터 */
+
+function updateFace(){
+
+ let f=faces[selected];
+
+ document.getElementById('face').innerText=f[0];
+ document.getElementById('faceText').innerText=f[1];
+
+}
+
+function drawMoods(){
+
+ document.getElementById('moods').innerHTML=
+ emotions.map(e=>`
+ <button class="mood ${selected===e[1]?'selected':''}"
+ onclick="choose('${e[1]}')">
+ <span>${e[0]}</span>${e[1]}
+ </button>
+ `).join('');
+
+}
+
+function choose(m){
+
+ selected=m;
+
+ drawMoods();
+ updateFace();
+
+}
+
+/* 기록 저장 */
+
+function getRecords(){
+
+ try{
+  return JSON.parse(localStorage.getItem('maeum')||'[]');
+ }catch(e){
+  return [];
+ }
+
+}
+
+function saveRecords(records){
+
+ localStorage.setItem('maeum',JSON.stringify(records));
+
+}
+
+function recordKey(r){
+
+ if(r.dateKey) return r.dateKey;
+
+ let match=String(r.date||'').match(
+ /(\d{4})[.년/-]\s*(\d{1,2})[.월/-]\s*(\d{1,2})/
+ );
+
+ if(match){
+  return match[1]+'-'+
+  String(match[2]).padStart(2,'0')+'-'+
+  String(match[3]).padStart(2,'0');
+ }
+
+ return '';
+
+}
+
+function save(data){
+
+ let records=getRecords();
+ let d=new Date();
+
+ records.unshift({
+ dateKey:key(d),
+ date:d.toLocaleDateString('ko-KR'),
+ mood:selected,
+ ...data
+ });
+
+ saveRecords(records);
+
+ alert('소중한 마음이 저장되었어요 💗');
+
+ renderAll();
+
+}
+
+function saveQuick(){
+
+ let text=document.getElementById('quick').value.trim();
+
+ if(!text){
+  alert('오늘의 감정을 적어주세요!');
+  return;
+ }
+
+ save({text});
+
+ document.getElementById('quick').value='';
+
+}
+
+function saveDiary(){
+
+ let a=document.getElementById('event').value;
+ let b=document.getElementById('feeling').value;
+ let c=document.getElementById('myself').value;
+
+ if(!a&&!b&&!c){
+  alert('일기를 적어주세요!');
+  return;
+ }
+
+ save({
+ text:'오늘 있었던 일: '+a+
+ '\n느낀 감정: '+b+
+ '\n나에게 하는 말: '+c
+ });
+
+ ['event','feeling','myself'].forEach(id=>{
+  document.getElementById(id).value='';
+ });
+
+}
+
+/* 마음 친구 */
+
+function friend(){
+
+ let text=document.getElementById('talk').value.trim();
+
+ if(!text){
+  alert('마음 이야기를 적어주세요.');
+  return;
+ }
+
+ let answers=[
+ '오늘 정말 수고했어요. 당신의 마음은 소중해요. 💗',
+ '그런 일이 있었군요. 많이 속상했겠어요. 🌷',
+ '모든 감정을 억지로 참지 않아도 돼요. 🧸',
+ '오늘은 자신에게 조금 더 다정해져 보세요. 💕',
+ '이야기해 줘서 고마워요. ✨'
+ ];
+
+ document.getElementById('reply').innerText=
+ '💗 마음 친구: '+
+ answers[Math.floor(Math.random()*answers.length)];
+
+}
+
+/* 화면 이동 */
+
+function show(page){
+
+ document.querySelectorAll('.page').forEach(p=>{
+  p.classList.remove('active');
+ });
+
+ document.getElementById(page).classList.add('active');
+
+ if(page==='history') renderAll();
+
+}
+
+/* 달력 */
+
+function changeMonth(n){
+
+ month.setMonth(month.getMonth()+n);
+
+ selectedDay=key(
+ new Date(month.getFullYear(),month.getMonth(),1)
+ );
+
+ renderCalendar();
+
+}
+
+function renderCalendar(){
+
+ let y=month.getFullYear();
+ let m=month.getMonth();
+
+ document.getElementById('monthTitle').innerText=
+ y+'년 '+(m+1)+'월';
+
+ let offset=(new Date(y,m,1).getDay()+6)%7;
+ let total=new Date(y,m+1,0).getDate();
+
+ let records=getRecords();
+ let moodMap={};
+
+ records.forEach(r=>{
+  let k=recordKey(r);
+  if(k&&!moodMap[k]) moodMap[k]=r.mood;
+ });
+
+ let html=['월','화','수','목','금','토','일']
+ .map(d=>`<div class="weekday">${d}</div>`).join('');
+
+ for(let i=0;i<offset;i++){
+  html+='<div class="blank"></div>';
+ }
+
+ for(let d=1;d<=total;d++){
+
+  let k=key(new Date(y,m,d));
+  let mood=emotions.find(e=>e[1]===moodMap[k]);
+
+  let emoji=mood?mood[0]:'';
+
+  html+=`
+  <button class="day
+  ${k===key(new Date())?'today':''}
+  ${selectedDay===k?'selected':''}"
+  onclick="selectDay('${k}')">
+  ${d}
+  <span>${emoji}</span>
+  </button>`;
+
+ }
+
+ document.getElementById('calendar').innerHTML=html;
+
+ renderDayRecords();
+
+}
+
+function selectDay(k){
+
+ selectedDay=k;
+ renderCalendar();
+
+}
+
+function renderDayRecords(){
+
+ let records=getRecords().filter(
+ r=>recordKey(r)===selectedDay
+ );
+
+ let box=document.getElementById('dayRecords');
+
+ if(!records.length){
+  box.innerHTML='이 날의 기록은 아직 없어요. 🌱';
+  return;
+ }
+
+ box.innerHTML=records.map(r=>`
+ <div class="entry">
+ <b>${r.mood}</b><br>
+ ${escapeHTML(r.text)}
+ </div>
+ `).join('');
+
+}
+
+/* 그래프 */
+
+function renderChart(){
+
+ let records=getRecords();
+ let days=[];
+
+ for(let i=6;i>=0;i--){
+
+  let d=new Date();
+  d.setDate(d.getDate()-i);
+
+  let k=key(d);
+
+  days.push({
+   label:(d.getMonth()+1)+'/'+d.getDate(),
+   count:records.filter(r=>recordKey(r)===k).length
+  });
+
+ }
+
+ let max=Math.max(1,...days.map(d=>d.count));
+
+ document.getElementById('chart').innerHTML=
+ days.map(d=>`
+ <div class="chart-row">
+ <span>${d.label}</span>
+ <div class="bar">
+ <div class="fill"
+ style="width:${d.count/max*100}%"></div>
+ </div>
+ <b>${d.count}</b>
+ </div>
+ `).join('');
+
+}
+
+/* 통계 */
+
+function renderStats(){
+
+ let records=getRecords();
+
+ document.getElementById('stats').innerHTML=
+ emotions.map(e=>{
+
+  let n=records.filter(r=>r.mood===e[1]).length;
+
+  return `<p>${e[0]} ${e[1]} : ${n}회</p>`;
+
+ }).join('');
+
+}
+
+/* 지난 기록 */
+
+function escapeHTML(s){
+
+ return String(s||'').replace(/[&<>"']/g,c=>({
+ '&':'&amp;',
+ '<':'&lt;',
+ '>':'&gt;',
+ '"':'&quot;',
+ "'":'&#39;'
+ }[c]));
+
+}
+
+function renderList(){
+
+ let records=getRecords();
+
+ document.getElementById('count').innerText=
+ '총 '+records.length+'개의 기록';
+
+ document.getElementById('list').innerHTML=
+ records.map(r=>`
+ <div class="entry">
+ <b>${r.mood} · ${r.date||r.dateKey}</b><br>
+ ${escapeHTML(r.text)}
+ </div>
+ `).join('')||'아직 기록이 없어요 🌱';
+
+}
+
+/* 백업 */
+
+function backup(){
+
+ let blob=new Blob(
+ [JSON.stringify(getRecords(),null,2)],
+ {type:'application/json'}
+ );
+
+ let url=URL.createObjectURL(blob);
+ let a=document.createElement('a');
+
+ a.href=url;
+ a.download='마음콩_기록.json';
+ a.click();
+
+ URL.revokeObjectURL(url);
+
+}
+
+/* 시작 */
+
+drawMoods();
+updateFace();
+renderAll();
+initPin();
+
+</script>
+
+</body>
+</html>
